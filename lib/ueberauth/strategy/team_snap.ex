@@ -78,12 +78,13 @@ defmodule Ueberauth.Strategy.TeamSnap do
   use Ueberauth.Strategy,
     uid_field: :id,
     default_scope: "read",
-    oauth2_module: Ueberauth.Strategy.TeamSnap.OAuth
+    oauth2_module: Ueberauth.Strategy.TeamSnap.OAuth,
+    api_url: "https://api.teamsnap.com/v3"
 
   alias Ueberauth.Auth.Credentials
   alias Ueberauth.Auth.Extra
   alias Ueberauth.Auth.Info
-  alias Ueberauth.Strategy.TeamSnap.OAuth
+  alias Ueberauth.Strategy.TeamSnap.{Collection, OAuth}
 
   @doc """
   Handles the initial redirect to the TeamSnap Authentication page.
@@ -195,17 +196,34 @@ defmodule Ueberauth.Strategy.TeamSnap do
   end
 
   defp fetch_user(conn, token) do
-    with {:ok, %OAuth2.Response{status_code: status_code, body: user}}
-         when status_code in 200..399 <- OAuth.get(token, "https://api.teamsnap.com/v3/me") do
-      put_private(conn, :team_snap_user, user)
+    with {:ok, objects} <- api_fetch(conn, token, "/"),
+         {:ok, url} <- Collection.link(objects, "me"),
+         {:ok, user} <- api_fetch(conn, token, url) do
+      conn |> put_private(:team_snap_user, user)
     else
       {:ok, %OAuth2.Response{status_code: 401}} ->
         set_errors!(conn, [error("token", "unauthorized")])
 
       {:error, %OAuth2.Error{reason: reason}} ->
         set_errors!(conn, [error("OAuth2", reason)])
+
+      {:error, key, reason} ->
+        set_errors!(conn, [error(key, reason)])
     end
   end
+
+  defp api_fetch(conn, token, url) do
+    with {:ok, %OAuth2.Response{status_code: status_code, body: body}}
+         when status_code in 200..399 <- OAuth.get(token, api_url(conn, url)) do
+      {:ok, body}
+    end
+  end
+
+  defp api_url(conn, <<"/"::utf8, _::binary>> = endpoint) do
+    option(conn, :api_url) <> endpoint
+  end
+
+  defp api_url(_conn, endpoint), do: endpoint
 
   defp option(conn, key) do
     Keyword.get(options(conn), key, Keyword.get(default_options(), key))
