@@ -1,7 +1,9 @@
 defmodule Ueberauth.TeamSnap.Mixfile do
   use Mix.Project
 
-  @version "0.0.0"
+  @version "0.1.0"
+
+  @github_url "https://github.com/mcrumm/ueberauth_team_snap"
 
   def project do
     [
@@ -12,8 +14,8 @@ defmodule Ueberauth.TeamSnap.Mixfile do
       elixir: "~> 1.3",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
-      source_url: "https://github.com/mcrumm/ueberauth_team_snap",
-      homepage_url: "https://github.com/mcrumm/ueberauth_team_snap",
+      source_url: @github_url,
+      homepage_url: @github_url,
       description: description(),
       deps: deps(),
       docs: docs()
@@ -51,7 +53,7 @@ defmodule Ueberauth.TeamSnap.Mixfile do
       files: ["lib", "mix.exs", "README.md", "LICENSE"],
       maintainers: ["Michael Crumm"],
       licenses: ["MIT"],
-      links: %{GitHub: "https://github.com/mcrumm/ueberauth_team_snap"}
+      links: %{GitHub: @github_url}
     ]
   end
 end
