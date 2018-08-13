@@ -167,15 +167,17 @@ defmodule Ueberauth.Strategy.TeamSnap do
   Fetches the fields to populate the info section of the `Ueberauth.Auth` struct.
   """
   def info(conn) do
-    user = conn.private.team_snap_user
+    %{"data" => user, "links" => links} =
+      conn.private.team_snap_user
+      |> Collection.first()
+      |> Collection.flatten()
 
     %Info{
-      name: user["name"],
-      description: user["bio"],
-      nickname: user["login"],
+      name: String.trim("#{user["first_name"]} #{user["last_name"]}"),
+      first_name: user["first_name"],
+      last_name: user["last_name"],
       email: user["email"],
-      location: user["location"],
-      urls: %{}
+      urls: links
     }
   end
 
@@ -192,7 +194,10 @@ defmodule Ueberauth.Strategy.TeamSnap do
   end
 
   defp fetch_uid(field, conn) do
-    conn.private.team_snap_user[field]
+    conn.private.team_snap_user
+    |> Collection.first()
+    |> Collection.flatten()
+    |> get_in(["data", field])
   end
 
   defp fetch_user(conn, token) do
