@@ -1,0 +1,18 @@
+---
+classification: lib
+production:
+  tier: 
+  url: 
+  hosting_platform: 
+  logging: false
+performance_monitoring: []
+error_monitoring: []
+continuous_integration: []
+bug_tracking: []
+documentation: []
+deployment: []
+languages:
+- name: Elixir
+  reference_id: n/a
+  version: 1.6.6
+frameworks: []
